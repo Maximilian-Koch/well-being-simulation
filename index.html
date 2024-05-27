@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #2c2c2c;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .title {
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            font-size: 1em;
+        }
+        .subtitle {
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            font-size: 0.8em;
+        }
+        .content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            width: 20%;
+        }
+        .chart-container {
+            width: 60%;
+            height: 60vh;
+        }
+        .slider-label {
+            margin: 10px 0;
+        }
+        input[type=range] {
+            width: 100%;
+        }
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">
+            <h1>How does social media usage influence the mental well-being in individuals?</h1>
+        </div>
+        <div class="subtitle">
+            <h2>By Fanar Jasim, Maximilian Koch and Xiao Zhou</h2>
+        </div>
+        <div class="content">
+            <div class="slider-group">
+                <div class="slider-label">Facebook-Instagram preference: <span id="p-value">0.5</span></div>
+                <input type="range" min="0" max="1" step="0.01" id="p-slider" value="0.5">
+                <div class="slider-label">Initial well-being: <span id="wb0-value">0.5</span></div>
+                <input type="range" min="0" max="1" step="0.01" id="wb0-slider" value="0.5">
+            </div>
+            <div class="chart-container">
+                <canvas id="simulationChart"></canvas>
+            </div>
+            <div class="slider-group">
+                <div class="slider-label">Predisposition to social-media addiction: <span id="a-value">0.5</span></div>
+                <input type="range" min="0" max="1" step="0.01" id="a-slider" value="0.5">
+                <div class="slider-label">Socio-economic privilege: <span id="x-value">0.5</span></div>
+                <input type="range" min="0" max="1" step="0.01" id="x-slider" value="0.5">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const coeffs = [0.25287156, -0.14006924,  0.00503218,  0.24519918, -0.71377042,  0.57423175,
+                        0.96369488, -0.39890329,  0.35024125,  0.05001708,  5];
+
+        function limit(num) {
+            if (num < 0) return 0;
+            if (num > 1) return 1;
+            return num;
+        }
+
+        function moving_average(data, length) {
+            length = Math.round(length);
+            const moving_averages = [];
+            for (let i = 0; i < data.length; i++) {
+                const window = data.slice(Math.max(0, i - length + 1), i + 1);
+                const window_average = window.reduce((a, b) => a + b, 0) / window.length;
+                moving_averages.push(window_average);
+            }
+            return moving_averages[moving_averages.length - 1];
+        }
+
+        function simulate(t, p, a, wb0, x, coeffs) {
+            const [A, B, C, D, E, F, G, H, I, J, K] = coeffs;
+            const K_int = Math.round(K);
+            const fb = [1 - p];
+            const ig = [p];
+            const wb = [wb0];
+
+            for (let duration = 1; duration <= t; duration++) {
+                fb.push(limit(A * fb[fb.length - 1] + B * wb[wb.length - 1] + C * a));
+                ig.push(limit(D * ig[ig.length - 1] + E * wb[wb.length - 1] + F * a));
+                wb.push(limit(G * moving_average(wb.slice(-K_int), K_int) + H * ig[ig.length - 1] + I * fb[fb.length - 1] + J * (1 - 1 / duration) * x));
+            }
+            return wb;
+        }
+
+        const ctx = document.getElementById('simulationChart').getContext('2d');
+        const simulationChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: 104 }, (_, i) => i + 1),
+                datasets: [{
+                    label: 'Simulation Data',
+                    borderColor: 'green',
+                    backgroundColor: 'rgba(0, 255, 0, 0.2)',
+                    data: []
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Time (in weeks)'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Well-being index'
+                        },
+                        min: 0,
+                        max: 1
+                    }
+                }
+            }
+        });
+
+        const sliders = {
+            p: document.getElementById('p-slider'),
+            a: document.getElementById('a-slider'),
+            wb0: document.getElementById('wb0-slider'),
+            x: document.getElementById('x-slider')
+        };
+
+        const values = {
+            p: document.getElementById('p-value'),
+            a: document.getElementById('a-value'),
+            wb0: document.getElementById('wb0-value'),
+            x: document.getElementById('x-value')
+        };
+
+        function updateSimulation() {
+            const p = parseFloat(sliders.p.value);
+            const a = parseFloat(sliders.a.value);
+            const wb0 = parseFloat(sliders.wb0.value);
+            const x = parseFloat(sliders.x.value);
+            const t = 104;
+
+            const results = simulate(t, p, a, wb0, x, coeffs);
+            simulationChart.data.datasets[0].data = results;
+            simulationChart.update();
+        }
+
+        Object.keys(sliders).forEach(key => {
+            sliders[key].addEventListener('input', (event) => {
+                values[key].textContent = event.target.value;
+                updateSimulation();
+            });
+        });
+
+        updateSimulation();
+    </script>
+</body>
+</html>
