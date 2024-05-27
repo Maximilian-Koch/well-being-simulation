@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulation</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body {
             background-color: #2c2c2c;
             color: #ffffff;
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -19,7 +20,7 @@
             padding: 0;
         }
         .container {
-            width: 100%;
+            width: 90%;
             max-width: 1200px;
             display: flex;
             flex-direction: column;
@@ -27,37 +28,79 @@
         }
         .title {
             text-align: center;
+            margin: 20px 0;
+        }
+        .title h1 {
+            font-size: 1.5em;
             margin: 0;
-            padding: 0;
-            font-size: 1em;
+            color: #e6e6e6;
         }
         .subtitle {
             text-align: center;
+            margin: 10px 0;
+        }
+        .subtitle h2 {
+            font-size: 1em;
             margin: 0;
-            padding: 0;
-            font-size: 0.8em;
+            color: #a6a6a6;
         }
         .content {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
             width: 100%;
             margin-top: 10px;
+        }
+        .sliders {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 20px;
+            align-items: center;
         }
         .slider-group {
             display: flex;
             flex-direction: column;
-            width: 20%;
-        }
-        .chart-container {
-            width: 60%;
-            height: 60vh;
+            align-items: center;
+            width: 22%;
+            height: 150px;
         }
         .slider-label {
             margin: 10px 0;
+            font-weight: 500;
         }
         input[type=range] {
             width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: #ddd;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        input[type=range]:hover {
+            opacity: 1;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #4CAF50;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        input[type=range]::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            background: #4CAF50;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        .chart-container {
+            width: 100%;
+            height: 60vh;
         }
         canvas {
             width: 100% !important;
@@ -74,20 +117,26 @@
             <h2>By Fanar Jasim, Maximilian Koch and Xiao Zhou</h2>
         </div>
         <div class="content">
-            <div class="slider-group">
-                <div class="slider-label">Facebook-Instagram preference: <span id="p-value">0.5</span></div>
-                <input type="range" min="0" max="1" step="0.01" id="p-slider" value="0.5">
-                <div class="slider-label">Initial well-being: <span id="wb0-value">0.5</span></div>
-                <input type="range" min="0" max="1" step="0.01" id="wb0-slider" value="0.5">
+            <div class="sliders">
+                <div class="slider-group">
+                    <div class="slider-label">Facebook-Instagram preference: <span id="p-value">0.35</span></div>
+                    <input type="range" min="0" max="1" step="0.01" id="p-slider" value="0.35">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label">Initial well-being: <span id="wb0-value">0.25</span></div>
+                    <input type="range" min="0" max="1" step="0.01" id="wb0-slider" value="0.25">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label">Predisposition to social-media addiction: <span id="a-value">0.38</span></div>
+                    <input type="range" min="0" max="1" step="0.01" id="a-slider" value="0.38">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label">Economic privilege: <span id="x-value">0.89</span></div>
+                    <input type="range" min="0" max="1" step="0.01" id="x-slider" value="0.89">
+                </div>
             </div>
             <div class="chart-container">
                 <canvas id="simulationChart"></canvas>
-            </div>
-            <div class="slider-group">
-                <div class="slider-label">Predisposition to social-media addiction: <span id="a-value">0.5</span></div>
-                <input type="range" min="0" max="1" step="0.01" id="a-slider" value="0.5">
-                <div class="slider-label">Socio-economic privilege: <span id="x-value">0.5</span></div>
-                <input type="range" min="0" max="1" step="0.01" id="x-slider" value="0.5">
             </div>
         </div>
     </div>
@@ -135,8 +184,8 @@
                 labels: Array.from({ length: 104 }, (_, i) => i + 1),
                 datasets: [{
                     label: 'Simulation Data',
-                    borderColor: 'green',
-                    backgroundColor: 'rgba(0, 255, 0, 0.2)',
+                    borderColor: '#4CAF50',
+                    backgroundColor: 'rgba(76, 175, 80, 0.2)',
                     data: []
                 }]
             },
@@ -148,17 +197,32 @@
                         display: true,
                         title: {
                             display: true,
-                            text: 'Time (in weeks)'
+                            text: 'Time (in weeks)',
+                            color: '#ffffff'
+                        },
+                        ticks: {
+                            color: '#ffffff'
                         }
                     },
                     y: {
                         display: true,
                         title: {
                             display: true,
-                            text: 'Well-being index'
+                            text: 'Well-being index',
+                            color: '#ffffff'
                         },
-                        min: 0,
-                        max: 1
+                        ticks: {
+                            color: '#ffffff',
+                            beginAtZero: true,
+                            max: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#ffffff'
+                        }
                     }
                 }
             }
