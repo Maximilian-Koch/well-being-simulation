@@ -21,20 +21,22 @@
             overflow: hidden;
         }
         .container {
-            width: 90%;
+            width: 100%;
             max-width: 1200px;
             display: flex;
             flex-direction: column;
             align-items: center;
             height: 100vh;
             overflow: hidden;
+            padding: 10px;
+            box-sizing: border-box;
         }
         .title {
             text-align: center;
-            margin: 10px 0;
+            margin: 5px 0;
         }
         .title h1 {
-            font-size: 1.5em;
+            font-size: 1.2em;
             margin: 0;
             color: #e6e6e6;
         }
@@ -43,7 +45,7 @@
             margin: 5px 0;
         }
         .subtitle h2 {
-            font-size: 1em;
+            font-size: 0.9em;
             margin: 0;
             color: #a6a6a6;
         }
@@ -59,7 +61,9 @@
             justify-content: space-between;
             width: 100%;
             align-items: center;
-            flex: 0.3;
+            flex: 0.25;
+            padding: 5px 0;
+            box-sizing: border-box;
         }
         .slider-group {
             display: flex;
@@ -70,6 +74,7 @@
         .slider-label {
             margin: 5px 0;
             font-weight: 500;
+            font-size: 0.8em;
         }
         input[type=range] {
             width: 100%;
@@ -87,22 +92,22 @@
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 25px;
-            height: 25px;
+            width: 20px;
+            height: 20px;
             background: #4CAF50;
             cursor: pointer;
             border-radius: 50%;
         }
         input[type=range]::-moz-range-thumb {
-            width: 25px;
-            height: 25px;
+            width: 20px;
+            height: 20px;
             background: #4CAF50;
             cursor: pointer;
             border-radius: 50%;
         }
         .chart-container {
             width: 100%;
-            flex: 0.7;
+            height: 66vh;
         }
         canvas {
             width: 100% !important;
@@ -117,10 +122,16 @@
         .toggle-label {
             font-weight: 500;
             margin-right: 10px;
+            font-size: 0.9em;
         }
         .toggle-switch {
             display: flex;
             align-items: center;
+        }
+        .simulation-result {
+            margin-top: 10px;
+            font-size: 1em;
+            color: #ffffff;
         }
     </style>
 </head>
@@ -159,6 +170,9 @@
             </div>
             <div class="chart-container">
                 <canvas id="simulationChart"></canvas>
+            </div>
+            <div class="simulation-result" id="simulation-result">
+                The current simulation creates an equilibrium of mental well-being.
             </div>
         </div>
     </div>
@@ -283,6 +297,21 @@
             }
 
             simulationChart.update();
+
+            // Update simulation result message
+            const initial = results[0];
+            const final = results[results.length - 1];
+            const resultElement = document.getElementById('simulation-result');
+
+            if (final > initial) {
+                resultElement.textContent = 'The current simulation improves mental well-being.';
+            } else if (final < initial) {
+                resultElement.textContent = 'The current simulation worsens mental well-being.';
+            } else if (Math.abs(final - initial) <= 0.05) {
+                resultElement.textContent = 'The current simulation creates an equilibrium of mental well-being.';
+            } else {
+                resultElement.textContent = 'The current simulation results are inconclusive.';
+            }
         }
 
         Object.keys(sliders).forEach(key => {
