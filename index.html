@@ -18,6 +18,7 @@
             height: 100vh;
             margin: 0;
             padding: 0;
+            overflow: hidden;
         }
         .container {
             width: 90%;
@@ -25,10 +26,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            height: 100vh;
+            overflow: hidden;
         }
         .title {
             text-align: center;
-            margin: 20px 0;
+            margin: 10px 0;
         }
         .title h1 {
             font-size: 1.5em;
@@ -37,7 +40,7 @@
         }
         .subtitle {
             text-align: center;
-            margin: 10px 0;
+            margin: 5px 0;
         }
         .subtitle h2 {
             font-size: 1em;
@@ -49,24 +52,23 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
-            margin-top: 10px;
+            flex: 1;
         }
         .sliders {
             display: flex;
             justify-content: space-between;
             width: 100%;
-            margin-bottom: 20px;
             align-items: center;
+            flex: 0.3;
         }
         .slider-group {
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 22%;
-            height: 150px;
         }
         .slider-label {
-            margin: 10px 0;
+            margin: 5px 0;
             font-weight: 500;
         }
         input[type=range] {
@@ -100,11 +102,25 @@
         }
         .chart-container {
             width: 100%;
-            height: 60vh;
+            flex: 0.7;
         }
         canvas {
             width: 100% !important;
             height: 100% !important;
+        }
+        .toggle-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .toggle-label {
+            font-weight: 500;
+            margin-right: 10px;
+        }
+        .toggle-switch {
+            display: flex;
+            align-items: center;
         }
     </style>
 </head>
@@ -131,8 +147,14 @@
                     <input type="range" min="0" max="1" step="0.01" id="a-slider" value="0.38">
                 </div>
                 <div class="slider-group">
-                    <div class="slider-label">Economic privilege: <span id="x-value">0.89</span></div>
+                    <div class="slider-label">Socio-economic privilege: <span id="x-value">0.89</span></div>
                     <input type="range" min="0" max="1" step="0.01" id="x-slider" value="0.89">
+                </div>
+            </div>
+            <div class="toggle-container">
+                <div class="toggle-switch">
+                    <div class="toggle-label">Fixed Y-Axis (0-1):</div>
+                    <input type="checkbox" id="fixed-y-axis-switch">
                 </div>
             </div>
             <div class="chart-container">
@@ -212,9 +234,7 @@
                             color: '#ffffff'
                         },
                         ticks: {
-                            color: '#ffffff',
-                            beginAtZero: true,
-                            max: 1
+                            color: '#ffffff'
                         }
                     }
                 },
@@ -242,6 +262,8 @@
             x: document.getElementById('x-value')
         };
 
+        const fixedYAxisSwitch = document.getElementById('fixed-y-axis-switch');
+
         function updateSimulation() {
             const p = parseFloat(sliders.p.value);
             const a = parseFloat(sliders.a.value);
@@ -251,6 +273,15 @@
 
             const results = simulate(t, p, a, wb0, x, coeffs);
             simulationChart.data.datasets[0].data = results;
+
+            if (fixedYAxisSwitch.checked) {
+                simulationChart.options.scales.y.min = 0;
+                simulationChart.options.scales.y.max = 1;
+            } else {
+                simulationChart.options.scales.y.min = undefined;
+                simulationChart.options.scales.y.max = undefined;
+            }
+
             simulationChart.update();
         }
 
@@ -260,6 +291,8 @@
                 updateSimulation();
             });
         });
+
+        fixedYAxisSwitch.addEventListener('change', updateSimulation);
 
         updateSimulation();
     </script>
